@@ -20,10 +20,24 @@ namespace DjengaTest
             Application app = uiapp.Application;
             Document doc = uidoc.Document;
 
+            // list of all categories
+            List<BuiltInCategory> categories = new List<BuiltInCategory>()
+            {
+             BuiltInCategory.OST_Walls,
+             BuiltInCategory.OST_Floors,
+             BuiltInCategory.OST_Windows
+
+            };
+
+
+            // a multicatrgory object filter
+
+            ElementMulticategoryFilter filtre = new ElementMulticategoryFilter(categories);
+
             // create collector object 
-            FilteredElementCollector collector = new FilteredElementCollector(doc)
-                .OfCategory(BuiltInCategory.OST_Walls)
-                .WhereElementIsNotElementType();
+            var collector = new FilteredElementCollector(doc)
+                .WhereElementIsNotElementType()
+                .WherePasses(filtre);
 
             //Display information on a task dialog box
             var simpleForm = new SimpleForm(collector);
