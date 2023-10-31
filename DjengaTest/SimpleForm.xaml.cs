@@ -21,7 +21,7 @@ namespace DjengaTest
     /// </summary>
     public partial class SimpleForm : Window
     {
-        public SimpleForm(FilteredElementCollector collection)
+        public SimpleForm(ICollection<Parameter> collection)
         {
             InitializeComponent();
             Box.ItemsSource = collection;

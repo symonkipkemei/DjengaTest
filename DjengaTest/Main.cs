@@ -20,27 +20,51 @@ namespace DjengaTest
             Application app = uiapp.Application;
             Document doc = uidoc.Document;
 
-            // list of all categories
-            List<BuiltInCategory> categories = new List<BuiltInCategory>()
-            {
-             BuiltInCategory.OST_Walls,
-             BuiltInCategory.OST_Floors,
-             BuiltInCategory.OST_Windows
-
-            };
+            // select an object on revit
+            Reference reference = uidoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element);
+            Element element = uidoc.Document.GetElement(reference);
 
 
-            // a multicatrgory object filter
+            // Get project parameters from the object
 
-            ElementMulticategoryFilter filtre = new ElementMulticategoryFilter(categories);
+            var length = element.get_Parameter(BuiltInParameter.CURVE_ELEM_LENGTH).AsDouble();
+            var area = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
+            var volume = element.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble();
+            var height = element.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).AsDouble();
 
-            // create collector object 
-            var collector = new FilteredElementCollector(doc)
-                .WhereElementIsNotElementType()
-                .WherePasses(filtre);
+            // Get height of one course
+            var machineCutHeight = new Material().height;
+            var mortarThickness = new Mortar().thickness;
+            double oneCourseHeight = mortarThickness + machineCutHeight;
 
-            //Display information on a task dialog box
-            var simpleForm = new SimpleForm(collector);
+            // Get the total number of blocks running feet
+
+            int noOfCourses = (int)(height / oneCourseHeight);
+            int totalRunningFeet = (int)(noOfCourses * length);
+
+            // Length of hoop iron
+            int coursesWithHoopIron = (int)(noOfCourses / 2);
+            double totalHoopIronLength = coursesWithHoopIron * length;
+
+            // Length of Damp Proof course
+
+            double dampProofCourseLength = length;
+
+
+            // breakdown the amount of volume and sand needed for the mortar
+
+
+
+
+
+
+
+
+            // Get mortar dimesnions
+
+
+            //Display How manny feet of stone is needed
+            var simpleForm = new SimpleForm();
             simpleForm.ShowDialog();
 
 
