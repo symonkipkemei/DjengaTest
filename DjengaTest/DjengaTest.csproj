@@ -60,6 +60,7 @@
     <Compile Include="SimpleForm.xaml.cs">
       <DependentUpon>SimpleForm.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SubElement.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="SimpleForm.xaml">

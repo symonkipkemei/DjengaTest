@@ -22,49 +22,173 @@ namespace DjengaTest
 
             // select an object on revit
             Reference reference = uidoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element);
-            Element element = uidoc.Document.GetElement(reference);
+            Element wall = uidoc.Document.GetElement(reference);
 
 
             // Get project parameters from the object
 
-            var length = element.get_Parameter(BuiltInParameter.CURVE_ELEM_LENGTH).AsDouble();
-            var area = element.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
-            var volume = element.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble();
-            var height = element.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).AsDouble();
-
-            // Get height of one course
-            var machineCutHeight = new Material().height;
-            var mortarThickness = new Mortar().thickness;
-            double oneCourseHeight = mortarThickness + machineCutHeight;
-
-            // Get the total number of blocks running feet
-
-            int noOfCourses = (int)(height / oneCourseHeight);
-            int totalRunningFeet = (int)(noOfCourses * length);
-
-            // Length of hoop iron
-            int coursesWithHoopIron = (int)(noOfCourses / 2);
-            double totalHoopIronLength = coursesWithHoopIron * length;
-
-            // Length of Damp Proof course
-
-            double dampProofCourseLength = length;
+            var length = wall.get_Parameter(BuiltInParameter.CURVE_ELEM_LENGTH).AsDouble();
+            var area = wall.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
+            var volume = wall.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble();
+            var height = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).AsDouble();
 
 
-            // breakdown the amount of volume and sand needed for the mortar
+            // stone full
+            Stone machineCutStoneFull = new Stone
+            {
+                name = "Machine cut stone - full",
+                width = 0.656168,
+                length = 1.31234,
+                height = 0.656168
+            };
+
+            // stone tooth
+            Stone machineCutStoneTooth = new Stone
+            {
+                name = "Machine cut stone - tooth",
+                width = 0.656168,
+                length = 0.656168,
+                height = 0.656168
+            };
+
+            // broken stone
+            Stone machineCutStoneBroken = new Stone
+            {
+                name = "Machine cut stone - tooth",
+                width = 0.656168,
+                length = 0.43744,
+                height = 0.656168
+            };
 
 
+            // vertical mortar object
+
+            Mortar verticalMortar = new Mortar
+            {
+                thickness = 0.098425, // thickness in inches 
+                width = machineCutStoneFull.width,
+                length = machineCutStoneFull.height,
+                ratioSand = 3,
+                ratioCement = 1
+            };
 
 
+            // horizontal mortar object
+
+            Mortar horizontalMortar = new Mortar
+            {
+                thickness = 0.098425, // thickness in inches 
+                width = machineCutStoneFull.width,
+                length = length,
+                ratioSand = 3,
+                ratioCement = 1
+            };
 
 
+            // COURSE ONE
+            //____________________________________________________________
+
+            Course courseOne = new Course();
+            courseOne.mortarHorizontal++;
+            courseOne.courseHeight = machineCutStoneFull.height + horizontalMortar.thickness;
 
 
-            // Get mortar dimesnions
+            double count = 0.0;
+            while (count < length)
+            {
+                //insert block and mortar
+                courseOne.stoneBlockFull++;
+                courseOne.mortarVertical++;
+
+                // adjust new dimensions of built masonry
+                count += machineCutStoneFull.length;
+                count += verticalMortar.thickness ;
+
+                // est the remaining length
+                double rem = length - count;
+
+                if (rem < machineCutStoneFull.length)
+                {
+                    //create a new block of this size ( The length of this tone keeps varying, to be factored later)
+                    courseOne.stoneBlockBroken++;
+                    count += rem;
+                }
+                // if this length is less than entire strech of wall, continue building
+            }
 
 
+            // COURSE TWO
+            //____________________________________________________________
+
+            Course courseTwo = new Course();
+            courseTwo.mortarHorizontal++;
+            courseTwo.courseHeight = machineCutStoneFull.height + horizontalMortar.thickness;
+
+            // determine how many blocks/mortars are in the second course
+            double countTwo = 0.0;
+
+            //add the tooth stone
+            courseOne.stoneBlockTooth++;
+            courseOne.mortarVertical++;
+
+            countTwo += machineCutStoneTooth.length;
+            countTwo += verticalMortar.thickness;
+
+            while (countTwo < length)
+            {
+                //insert block and mortar
+                courseOne.stoneBlockFull++;
+                courseOne.mortarVertical++;
+
+                // adjust new dimensions of built masonry
+                countTwo += machineCutStoneFull.length;
+                countTwo += verticalMortar.thickness;
+
+                // est the remaining length
+                double rem = length - countTwo;
+                if (rem < machineCutStoneFull.length) 
+                { 
+                    //create a new block of this size ( The length of this tone keeps varying, to be factored later)
+                    courseOne.stoneBlockBroken++;
+                    countTwo += rem;
+                }
+
+                // if this count is less than entire strech of wall, continue building
+            }
+
+
+            List<double> items = new List<double>();
+
+            // wall object
+
+            WallElement wallOne = new WallElement();
+            double courseHeight = 0;
+            while (courseHeight < height)
+            {
+                // add course to the wall
+                wallOne.courseOne++;
+                courseHeight += courseOne.courseHeight;
+          
+
+                if (courseHeight < height)
+                {
+                    wallOne.courseTwo++;
+                    courseHeight += courseTwo.courseHeight;
+           
+                    wallOne.hoopIronPiece++;
+
+                }
+                else { break; }
+          
+            }
+
+
+            items.Add((double)wallOne.hoopIronPiece);
+            items.Add(wallOne.courseTwo);
+            items.Add(wallOne.courseOne);
+          
             //Display How manny feet of stone is needed
-            var simpleForm = new SimpleForm();
+            var simpleForm = new SimpleForm(items);
             simpleForm.ShowDialog();
 
 
