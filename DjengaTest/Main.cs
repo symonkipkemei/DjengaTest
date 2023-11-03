@@ -31,8 +31,8 @@ namespace DjengaTest
             var area = wall.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
             var volume = wall.get_Parameter(BuiltInParameter.HOST_VOLUME_COMPUTED).AsDouble();
             var height = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).AsDouble();
-
-
+            ElementId width = wall.GetTypeId();
+            
             // stone full
             Stone machineCutStoneFull = new Stone
             {
@@ -128,8 +128,8 @@ namespace DjengaTest
             double countTwo = 0.0;
 
             //add the tooth stone
-            courseOne.stoneBlockTooth++;
-            courseOne.mortarVertical++;
+            courseTwo.stoneBlockTooth++;
+            courseTwo.mortarVertical++;
 
             countTwo += machineCutStoneTooth.length;
             countTwo += verticalMortar.thickness;
@@ -182,14 +182,65 @@ namespace DjengaTest
           
             }
 
+            // Display data
 
-            items.Add((double)wallOne.hoopIronPiece);
-            items.Add(wallOne.courseTwo);
-            items.Add(wallOne.courseOne);
+            ///////////////////// BLOCKS DATA
+
+            // Total full blocks
+            int totalFullBlocks = (wallOne.courseOne * courseOne.stoneBlockFull) + (wallOne.courseTwo * courseTwo.stoneBlockFull) ;
+            // Total tooth blocks
+            int totalToothBlocks = (wallOne.courseTwo * courseTwo.stoneBlockTooth);
+            // total broken blocks
+            int totalBrokenBlocks = (wallOne.courseOne * courseOne.stoneBlockBroken) + (wallOne.courseTwo * courseTwo.stoneBlockBroken);
+            // total number of blocks
+            int totalBlocks = totalFullBlocks + totalToothBlocks + totalBrokenBlocks;
+
+
+
+            ///////////////////// HOOP IRON DATA
+            ///// total length of hoop Iron
+            double totalHoopIronLength = (double)(wallOne.hoopIronPiece) * length;
+
+            ///////////////////// MORTAR DATA
+            // total volume of Mortar
+            double courseOneVerticalMortarVolume = (wallOne.courseOne * courseOne.mortarVertical * verticalMortar.Volume());
+            double courseTwoVerticalMortarVolume = (wallOne.courseTwo * courseTwo.mortarVertical * verticalMortar.Volume());
+
+            double courseOneHorizontalMortarVolume = wallOne.courseOne * courseOne.mortarHorizontal * horizontalMortar.Volume();
+            double courseTwoHorizontalMortarVolume = wallOne.courseTwo * courseTwo.mortarHorizontal * horizontalMortar.Volume();
+
+            double totalMortarVolume = courseOneHorizontalMortarVolume + courseTwoHorizontalMortarVolume + courseTwoHorizontalMortarVolume + courseTwoVerticalMortarVolume;
+
+            // total volume of sand
+            double mortarSandVolume = (3 / 4) * totalMortarVolume;
+
+            // total volume of cement
+            double mortarCementVolume = (1 / 4) * totalMortarVolume;
+
+
+            ///////////////////// DPC DATA
+            ///
+
+
+            // display message
+
+            var displayMessage = $" " +
+                $"Material Abstraction\n" +
+                $"_______________________\n" +
+                $"Full Blocks : {totalFullBlocks}\n" +
+                $"Tooth Blocks : {totalToothBlocks} \n" +
+                $"Broken Blocks : {totalBrokenBlocks} \n" +
+                $"_______________________\n" +
+                $"Total Blocks : {totalBlocks}";
+
+
+            TaskDialog.Show("tests", displayMessage);
+
+         
           
             //Display How manny feet of stone is needed
-            var simpleForm = new SimpleForm(items);
-            simpleForm.ShowDialog();
+            //var simpleForm = new SimpleForm(items);
+            //simpleForm.ShowDialog();
 
 
             return Result.Succeeded;
